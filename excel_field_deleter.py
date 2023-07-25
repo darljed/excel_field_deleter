@@ -33,7 +33,6 @@ class Deleter:
                 df.to_excel(writer,data['name'])
                 
             self.complete = True
-            self.debug("self.complete has been set to True")
 
     async def processWorksheet(self,sheet):
         self.debug(f"{self.filename} : Parsing fields for sheet '{sheet}'... ")
@@ -92,10 +91,7 @@ class Deleter:
         self.debug("Almost there! Please wait while the new file is being generated... This will take some time for large datasets.")
         self.output_filename = f'output-{datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")}'
         self.tasks.append(asyncio.create_task(self.saveOutput(self.mainData)))
-        while not self.complete:
-            print(".",end="")
-            sys.stdout.flush()
-            await asyncio.sleep(1)
+        
         
         # await asyncio.gather(*self.tasks)
         # with open('file.json',"w") as f:
