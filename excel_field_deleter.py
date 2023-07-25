@@ -8,7 +8,8 @@ class Deleter:
     def __init__(self):
         self.pwd = os.path.dirname(os.path.realpath(__file__))
         self.debugMode = True
-        self.output_filename = f'output-{datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")}'
+        self.output_filename = ""
+        self.complete = False
         self.mainData = []
         self.tasks = []
         try:
@@ -25,14 +26,17 @@ class Deleter:
         if(self.debugMode):
             print(str)
     
-    def saveOutput(self,dataArr):
+    async def saveOutput(self,dataArr):
         with pd.ExcelWriter(os.path.join(self.pwd,f'{self.output_filename}.xlsx')) as writer:
             for data in dataArr:
                 df = pd.DataFrame(data['data'])
                 df.to_excel(writer,data['name'])
+                
+            self.complete = True
+            self.debug("self.complete has been set to True")
 
     async def processWorksheet(self,sheet):
-        self.debug(f"{self.filename} : Parsing fields for worksheet {sheet}... This might take a few minutes to complete.")
+        self.debug(f"{self.filename} : Parsing fields for sheet '{sheet}'... ")
         sheet_content = self.xl.parse(sheet)
         j = sheet_content.to_dict()
         self.debug(f"{self.filename} : removing unncessary fields...")
@@ -47,7 +51,7 @@ class Deleter:
             "data": newDict
         }
         self.mainData.append(newObj)
-        self.debug(f"{self.filename} : worksheet {sheet} has been cleaned-up.")
+        self.debug(f"{self.filename} : sheet '{sheet}' has been cleaned-up.")
 
     async def main(self):
         
@@ -72,28 +76,34 @@ class Deleter:
         if(os.path.exists(os.path.join(self.pwd,self.filename))):
             self.xl = pd.ExcelFile(os.path.join(self.pwd,self.filename))
             self.debug(f"{self.filename} has been successfully loaded.")
-            self.debug(f"{self.filename} : Reading worksheet names")
+            self.debug(f"{self.filename} : Reading ...")
             # read the sheet names
             sheetnames = self.xl.sheet_names
-            self.debug(f"{self.filename} : Found {len(sheetnames)} worksheet.")
+            self.debug(f"{self.filename} : Found {len(sheetnames)} sheets.")
             for sheet in sheetnames:
                 # create a task
                 self.tasks.append(asyncio.create_task(self.processWorksheet(sheet)))
 
         else:
-            self.debug(f"The file {self.filename} does not exists. Aborting execution.")
+            self.debug(f"The file '{self.filename}' does not exists. Aborting execution.")
             exit(1)
 
         await asyncio.gather(*self.tasks)
         self.debug("Almost there! Please wait while the new file is being generated... This will take some time for large datasets.")
-        self.saveOutput(self.mainData)
+        self.output_filename = f'output-{datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")}'
+        self.tasks.append(asyncio.create_task(self.saveOutput(self.mainData)))
+        while not self.complete:
+            print(".",end="")
+            sys.stdout.flush()
+            await asyncio.sleep(1)
+        
+        # await asyncio.gather(*self.tasks)
         # with open('file.json',"w") as f:
         #     f.write(json.dumps(self.mainData))
         endtime = time.time()
-        self.debug(f"Success! The clean up process has been completed within {endtime - startime} seconds.")
-        self.debug(f"The new file {self.output_filename}.xlsx has been generated.")
+        self.debug(f"\n\nSuccess! The clean up process has been completed within {round(endtime - startime,2)} seconds.")
+        self.debug(f"A new file has been generated in:\n{os.path.join(self.pwd,self.output_filename)}.xlsx")
 
-    
         
 
 if __name__ == "__main__":
