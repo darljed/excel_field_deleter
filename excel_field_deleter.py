@@ -26,7 +26,7 @@ class Deleter:
             print(str)
     
     def saveOutput(self,dataArr):
-        with pd.ExcelWriter(f'{self.output_filename}.xlsx') as writer:
+        with pd.ExcelWriter(os.path.join(self.pwd,f'{self.output_filename}.xlsx')) as writer:
             for data in dataArr:
                 df = pd.DataFrame(data['data'])
                 df.to_excel(writer,data['name'])

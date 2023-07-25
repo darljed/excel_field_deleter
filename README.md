@@ -27,11 +27,10 @@ Example:
 
 ```
 python excel_field_deleter.py sample_file.xlsx
-python excel_field_deleter.py C:\sample_file.xlsx
-python excel_field_deleter.py "C:\Users\admin\Documents\sample_file.xlsx"
+python excel_field_deleter.py "My Sample File.xlsx"
 ```
 
 ## Result
 
-The output will be an new excel file with filename `output.xlsx` and with fields deleted except for the fields listed in `fields_to_keep.txt`
+The output will be an new excel file with filename `output-{current date and time}.xlsx` and with fields deleted except for the fields listed in `fields_to_keep.txt`
 
