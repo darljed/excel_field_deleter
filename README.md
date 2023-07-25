@@ -3,7 +3,7 @@ The excel_field_deleter is a Python code that removes unnecessary fields from an
 
 ## Requirements 
 
-- Python version 8 and above is required
+- Python version 3.8 and above is required
 
 - Install the required dependencies.
 
